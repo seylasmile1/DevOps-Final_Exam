@@ -1,6 +1,4 @@
 pipeline {
-
-```
 agent any
 
 triggers {
@@ -40,7 +38,6 @@ post {
             subject: "[FAILED] ${JOB_NAME} #${BUILD_NUMBER}",
 
             body: """
-```
 
 Build failed.
 
@@ -53,8 +50,6 @@ ${BUILD_URL}
 Commit:
 ${GIT_COMMIT}
 """,
-
-```
             to: "srengty@gmail.com",
 
             recipientProviders: [
@@ -63,6 +58,5 @@ ${GIT_COMMIT}
         )
     }
 }
-```
 
 }
