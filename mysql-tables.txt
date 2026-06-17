@@ -1,0 +1,4 @@
+Tables_in_A-SARITH_Seyla-db
+exam_test
+profiles
+templates

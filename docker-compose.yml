@@ -1,0 +1,47 @@
+services:
+
+  web:
+
+    image: ubuntu:24.04
+
+    container_name: spring-web
+
+    ports:
+      - "8443:8080"
+      - "2222:22"
+
+    volumes:
+      - ./springboot:/app
+
+    working_dir: /app
+
+    command: >
+      bash -c "
+      apt update &&
+      apt install -y openjdk-21-jdk nginx openssh-server git php &&
+      service nginx start &&
+      tail -f /dev/null
+      "
+
+    depends_on:
+      - mysql
+
+  mysql:
+
+    image: mysql:8
+
+    container_name: spring-db
+
+    environment:
+      MYSQL_ROOT_PASSWORD: Hello@123
+
+      MYSQL_DATABASE: A-SARITH_Seyla-db
+
+    ports:
+      - "3307:3306"
+
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+volumes:
+  mysql_data:

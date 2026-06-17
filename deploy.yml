@@ -1,0 +1,27 @@
+---
+- hosts: web
+  become: yes
+
+  tasks:
+
+    - name: Git pull
+      shell: |
+        cd ~/Devops_Final/DevOps-Final_Exam
+        git reset --hard
+        git pull
+
+    - name: Build Maven
+      shell: |
+        cd ~/Devops_Final/DevOps-Final_Exam
+        mvn clean package
+
+    - name: Run Tests
+      shell: |
+        cd ~/Devops_Final/DevOps-Final_Exam
+        mvn test
+
+    - name: Backup MySQL
+      shell: |
+        docker exec spring-db \
+        mysqldump \
+        -u root \ -pHello@123 \ A-SARITH_Seyla-db \ > ~/Devops_Final/backup.sql
