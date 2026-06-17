@@ -4,24 +4,13 @@
 
   tasks:
 
-    - name: Git pull
-      shell: |
-        cd ~/Devops_Final/DevOps-Final_Exam
-        git reset --hard
-        git pull
+    - name: Copy project to server
+      synchronize:
+        src: "{{ lookup('env','WORKSPACE') }}/"
+        dest: /root/Devops_Final/DevOps-Final_Exam/
 
-    - name: Build Maven
+    - name: Build docker containers
       shell: |
-        cd ~/Devops_Final/DevOps-Final_Exam
-        mvn clean package
-
-    - name: Run Tests
-      shell: |
-        cd ~/Devops_Final/DevOps-Final_Exam
-        mvn test
-
-    - name: Backup MySQL
-      shell: |
-        docker exec spring-db \
-        mysqldump \
-        -u root \ -pHello@123 \ A-SARITH_Seyla-db \ > ~/Devops_Final/backup.sql
+        cd /root/Devops_Final/DevOps-Final_Exam
+        docker compose down
+        docker compose up -d --build
