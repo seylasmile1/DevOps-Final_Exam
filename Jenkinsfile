@@ -1,4 +1,5 @@
 pipeline {
+
 agent any
 
 triggers {
@@ -7,13 +8,19 @@ triggers {
 
 stages {
 
+    stage('Checkout') {
+        steps {
+            checkout scm
+        }
+    }
+
     stage('Build') {
         steps {
             sh 'mvn clean package -DskipTests'
         }
     }
 
-    stage('SQLite Test') {
+    stage('Test') {
         steps {
             sh 'mvn test -Dspring.profiles.active=test'
         }
@@ -28,15 +35,10 @@ stages {
 
 post {
 
-    success {
-        echo 'Deployment Success'
-    }
-
     failure {
 
         emailext(
-            subject: "[FAILED] ${JOB_NAME} #${BUILD_NUMBER}",
-
+            subject: "Build Failed - ${JOB_NAME}",
             body: """
 
 Build failed.
@@ -46,11 +48,9 @@ ${JOB_NAME}
 
 Build URL:
 ${BUILD_URL}
-
-Commit:
-${GIT_COMMIT}
 """,
-            to: "srengty@gmail.com",
+
+            to: "srengty@gmail.com,seyla00004@gmail.com",
 
             recipientProviders: [
                 [$class: 'DevelopersRecipientProvider']
