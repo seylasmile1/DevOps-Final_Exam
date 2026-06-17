@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>ID Card Preview</title>
+</head>
+<body>
+
+<h2>ID Card Preview</h2>
+
+<div th:if="${profile != null}">
+    <p>Name: <span th:text="${profile.fullName}"></span></p>
+
+    <p>Registration Number:
+        <span th:text="${profile.registrationNumber}"></span>
+    </p>
+</div>
+
+<div th:unless="${profile != null}">
+    <p><strong>Profile not found.</strong></p>
+    <p><a th:href="@{/}">Return home</a></p>
+</div>
+
+</body>
+</html>
