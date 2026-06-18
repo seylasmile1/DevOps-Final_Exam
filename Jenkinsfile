@@ -2,62 +2,49 @@ pipeline {
     agent any
 
     triggers {
-        // Poll SCM every 5 minutes. 
-        // Jenkins prefers 'H/5' over '*/5' to evenly distribute load.
+        // Poll SCM every 5 minutes
         pollSCM('H/5 * * * *')
     }
 
     stages {
-        stage('Build') {
+        stage('Build & Test') {
             steps {
-                echo 'Building the project...'
-                // Replace with your actual build command (e.g., npm install, ./mvnw clean package)
-                sh 'echo "Simulating build process..."'
+                echo 'Building and testing the Spring Boot application...'
+                // Make the Maven wrapper executable
+                sh 'chmod +x mvnw'
+                // Run clean, test, and package
+                sh './mvnw clean package'
             }
         }
         
-        stage('Test') {
+        stage('Deploy to Web Server') {
             steps {
-                echo 'Running automated tests...'
-                // Replace with your actual test command (e.g., npm test, ./mvnw test)
-                sh 'echo "Simulating tests..."'
-            }
-        }
-        
-        stage('Deploy') {
-            steps {
-                echo 'Deploying to Web Server using Ansible...'
-                // Ensure your Ansible playbook (e.g., deploy.yml) is in the repository
-                ansiblePlaybook(
-                    playbook: 'deploy.yml',
-                    inventory: 'inventory.ini', // Path to your inventory file
-                    credentialsId: 'web-server-ssh-key', // The ID of the SSH key stored in Jenkins credentials
-                    colorized: true,
-                    hostKeyChecking: false 
-                )
+                echo 'Deploying application via Ansible...'
+                // Run the Ansible playbook. 
+                // Note: Update the path to your inventory and playbook files if they differ.
+                sh 'ansible-playbook -i inventory deploy.yml'
             }
         }
     }
 
     post {
         failure {
-            echo 'Build or Test failed. Triggering email notifications...'
-            emailext(
-                subject: "FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]'",
-                body: """<p>The build failed.</p>
-                         <p>Check console output at <a href="${env.BUILD_URL}">${env.JOB_NAME} [${env.BUILD_NUMBER}]</a></p>""",
-                to: 'srengty@gmail.com',
+            echo 'Pipeline failed! Sending email notifications...'
+            // Send email to the specific address AND the developers who committed the code
+            emailext (
+                subject: "Build Failed: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]'",
+                body: """<p>The build or test process failed for Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]'.</p>
+                         <p>Please check the console output here: <a href='${env.BUILD_URL}'>${env.BUILD_URL}</a></p>""",
+                to: 'seyla00004@gmail.com',
+                // srengty@gmail.com,
                 recipientProviders: [
-                    // Sends email to the specific user who committed the breaking change
-                    [$class: 'CulpritsRecipientProvider'],
-                    // Sends email to the user who triggered the build (if done manually)
-                    [$class: 'RequesterRecipientProvider']
-                ],
-                mimeType: 'text/html'
+                    [$class: 'DevelopersRecipientProvider'],
+                    [$class: 'CulpritsRecipientProvider']
+                ]
             )
         }
         success {
-            echo 'Pipeline completed and deployed successfully!'
+            echo 'Build, Test, and Deployment completed successfully!'
         }
     }
 }
