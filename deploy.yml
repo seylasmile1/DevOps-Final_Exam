@@ -3,10 +3,14 @@
   become: yes
 
   tasks:
-
+    - name: Create directory
+      file:
+        path: /root/Devops_Final/DevOps-Final_Exam
+        state: directory
+        mode: '0755'
     - name: Copy project to server
       synchronize:
-        src: "{{ lookup('env','WORKSPACE') }}/"
+        src: ./
         dest: /root/Devops_Final/DevOps-Final_Exam/
 
     - name: Build docker containers

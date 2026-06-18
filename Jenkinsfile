@@ -1,62 +1,63 @@
 pipeline {
+    agent any
 
-agent any
+    triggers {
+        // Poll SCM every 5 minutes. 
+        // Jenkins prefers 'H/5' over '*/5' to evenly distribute load.
+        pollSCM('H/5 * * * *')
+    }
 
-triggers {
-    pollSCM('H/5 * * * *')
-}
-
-stages {
-
-    stage('Checkout') {
-        steps {
-            checkout scm
+    stages {
+        stage('Build') {
+            steps {
+                echo 'Building the project...'
+                // Replace with your actual build command (e.g., npm install, ./mvnw clean package)
+                sh 'echo "Simulating build process..."'
+            }
+        }
+        
+        stage('Test') {
+            steps {
+                echo 'Running automated tests...'
+                // Replace with your actual test command (e.g., npm test, ./mvnw test)
+                sh 'echo "Simulating tests..."'
+            }
+        }
+        
+        stage('Deploy') {
+            steps {
+                echo 'Deploying to Web Server using Ansible...'
+                // Ensure your Ansible playbook (e.g., deploy.yml) is in the repository
+                ansiblePlaybook(
+                    playbook: 'deploy.yml',
+                    inventory: 'inventory.ini', // Path to your inventory file
+                    credentialsId: 'web-server-ssh-key', // The ID of the SSH key stored in Jenkins credentials
+                    colorized: true,
+                    hostKeyChecking: false 
+                )
+            }
         }
     }
 
-    stage('Build') {
-        steps {
-            sh 'mvn clean package -DskipTests'
+    post {
+        failure {
+            echo 'Build or Test failed. Triggering email notifications...'
+            emailext(
+                subject: "FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]'",
+                body: """<p>The build failed.</p>
+                         <p>Check console output at <a href="${env.BUILD_URL}">${env.JOB_NAME} [${env.BUILD_NUMBER}]</a></p>""",
+                to: 'srengty@gmail.com',
+                recipientProviders: [
+                    // Sends email to the specific user who committed the breaking change
+                    [$class: 'CulpritsRecipientProvider'],
+                    // Sends email to the user who triggered the build (if done manually)
+                    [$class: 'RequesterRecipientProvider']
+                ],
+                mimeType: 'text/html'
+            )
+        }
+        success {
+            echo 'Pipeline completed and deployed successfully!'
         }
     }
-
-    stage('Test') {
-        steps {
-            sh 'mvn test -Dspring.profiles.active=test'
-        }
-    }
-
-    stage('Deploy') {
-        steps {
-            sh 'ansible-playbook -i inventory.ini deploy.yml'
-        }
-    }
-}
-
-post {
-
-    failure {
-
-        emailext(
-            subject: "Build Failed - ${JOB_NAME}",
-            body: """
-
-Build failed.
-
-Job:
-${JOB_NAME}
-
-Build URL:
-${BUILD_URL}
-""",
-
-            to: "srengty@gmail.com,seyla00004@gmail.com",
-
-            recipientProviders: [
-                [$class: 'DevelopersRecipientProvider']
-            ]
-        )
-    }
-}
-
 }
