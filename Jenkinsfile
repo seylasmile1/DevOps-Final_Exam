@@ -35,8 +35,7 @@ pipeline {
                 subject: "Build Failed: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]'",
                 body: """<p>The build or test process failed for Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]'.</p>
                          <p>Please check the console output here: <a href='${env.BUILD_URL}'>${env.BUILD_URL}</a></p>""",
-                to: 'seyla00004@gmail.com',
-                // srengty@gmail.com,
+                to: 'seyla00004@gmail.com,srengty@gmail.com'
                 recipientProviders: [
                     [$class: 'DevelopersRecipientProvider'],
                     [$class: 'CulpritsRecipientProvider']
